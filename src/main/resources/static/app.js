@@ -83,3 +83,7 @@ function showAll() {
     document.getElementById('keyword').value = '';
     search('');
 }
+
+// 在搜索框按回车即触发检索，优化交互体验
+document.getElementById('keyword')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });

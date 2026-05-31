@@ -21,12 +21,15 @@ import java.util.stream.Collectors;
 @Service
 public class EnrollmentService {
 
+    /** 学号格式：S+6位数字；课程号格式：C+6位数字。 */
+    private static final java.util.regex.Pattern STUDENT_ID = java.util.regex.Pattern.compile("S\\d{6}");
+    private static final java.util.regex.Pattern COURSE_ID = java.util.regex.Pattern.compile("C\\d{6}");
     /** 内存中保存最近一次导入处理后的记录，供检索使用（线程安全）。 */
     private final List<EnrollRecord> store = new CopyOnWriteArrayList<>();
 
     /**
      * 将 CSV 文本（每行：studentId,courseId,courseName,courseType）解析为实体列表。
-     * 忽略空行与列数不足的行。
+     * 忽略空行、列数不足的行，以及学号/课程号不符合格式规则的行。
      */
     public List<EnrollRecord> parseCsv(String csv) {
         if (csv == null || csv.isBlank()) {
@@ -36,10 +39,13 @@ public class EnrollmentService {
                 .map(String::trim)
                 .filter(line -> !line.isEmpty())
                 .map(line -> line.split(",", -1))
-                .filter(cols -> cols.length >= 4)
+                .filter(cols -> cols.length >= 4)                                 //后续追加
+                .filter(cols -> STUDENT_ID.matcher(cols[0].trim()).matches()
+                        && COURSE_ID.matcher(cols[1].trim()).matches())
                 .map(cols -> new EnrollRecord(
                         cols[0].trim(), cols[1].trim(), cols[2].trim(), cols[3].trim()))
                 .collect(Collectors.toList());
+        
     }
 
     /**
